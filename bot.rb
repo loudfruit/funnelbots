@@ -2,6 +2,7 @@ require 'facebook/messenger'
 require 'httparty'
 require 'json' 
 require 'forecast_io'
+require 'dotenv/load'
 ForecastIO.configure do |configuration|
   configuration.api_key = ENV["CONFIG_KEY"]
 end

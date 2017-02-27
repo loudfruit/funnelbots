@@ -13,10 +13,10 @@ include Facebook::Messenger
 # Subcribe bot to your page
 Facebook::Messenger::Subscriptions.subscribe(access_token: ENV["ACCESS_TOKEN"])
 
-API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address='
+API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address='.freeze
 
+# def wait_for_user_input
 Bot.on :message do |message|
-  puts "Received '#{message.inspect}' from #{message.sender}" # debug purposes
   parsed_response = get_parsed_response(API_URL, message.text) # talk to Google API
   message.type # make bot appear to be typing
   if message.text == "hi"

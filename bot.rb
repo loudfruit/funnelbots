@@ -15,16 +15,25 @@ Facebook::Messenger::Subscriptions.subscribe(access_token: ENV["ACCESS_TOKEN"])
 
 API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address='.freeze
 
-# def wait_for_user_input
-Bot.on :message do |message|
-  parsed_response = get_parsed_response(API_URL, message.text) # talk to Google API
-  message.type # make bot appear to be typing
-  if message.text == "hi"
-    message.reply(text: 'Hello! Where are you?')
-  elsif !parsed_response
-    message.reply(text: 'Sorry I don\'t know that location. Try typing your city and country, please')
-    return # we need an early return if something went wrong, though your bot server will complain
-  else
+def wait_for_user_input
+  Bot.on :message do |message|
+    case message.text
+    when /hi/i, /hello/i  # we use regexp to match parts of strings
+      message.reply(text: "Hello! What town or city are you in?")
+      weather
+    end
+  end
+end
+
+def weather
+  Bot.on :message do |message|
+    parsed_response = get_parsed_response(API_URL, message.text) # talk to Google API
+    if !parsed_response
+      message.reply(text: 'Sorry I don\'t know that location. Try typing your city and country, please')
+      wait_for_user_input
+      return # we need an early return if something went wrong, though your bot server will complain
+    end
+    message.type # make bot appear to be typing
     coord = extract_coordinates(parsed_response) # we have a separate method for that
     forecast = ForecastIO.forecast(coord['lat'], coord['lng'], params: { units: 'si' }).currently
     if forecast.temperature > 30
@@ -39,6 +48,7 @@ Bot.on :message do |message|
       message.reply(text: "Watch out for ice today! It's #{forecast.summary.upcase} and #{forecast.temperature}C in #{message.text}")
     else
       message.reply(text: "You really might want to stay inside today! It's #{forecast.summary.upcase} and #{forecast.temperature}C in #{message.text}")
+    wait_for_user_input
     end
   end
 end
@@ -57,3 +67,5 @@ def extract_coordinates(parsed)
   parsed['results'].first['geometry']['location']
 end
 
+# launch the loop
+wait_for_user_input
